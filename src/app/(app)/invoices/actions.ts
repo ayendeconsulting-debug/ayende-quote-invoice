@@ -7,6 +7,9 @@ import { getBusinessProfile } from "@/lib/profile";
 import { nextDocumentNumber } from "@/lib/numbering";
 import { computeTotals, lineAmount, round2 } from "@/lib/money";
 import { contributesToTotal } from "@/lib/quote-template";
+import { loadInvoiceView } from "./data";
+import { renderInvoicePdf } from "@/lib/pdf/invoice-pdf";
+import { sendInvoiceEmail } from "@/lib/email";
 
 export type InvoiceState = { error?: string };
 
@@ -262,6 +265,52 @@ export async function updateInvoiceMeta(formData: FormData): Promise<void> {
   }
   revalidatePath(`/invoices/${id}`);
   redirect(`/invoices/${id}`);
+}
+
+export async function sendInvoiceToClient(formData: FormData): Promise<void> {
+  const id = s(String(formData.get("id") ?? ""));
+  if (!id) return;
+
+  const loaded = await loadInvoiceView(id);
+  if (!loaded) redirect("/invoices");
+  const { view, invoice } = loaded;
+
+  if (!invoice.clientEmail) {
+    redirect(`/invoices/${id}?serror=no-email`);
+  }
+
+  let result: { ok: boolean; error?: string };
+  try {
+    const pdf = await renderInvoicePdf(view);
+    result = await sendInvoiceEmail({
+      to: invoice.clientEmail as string,
+      invoiceNumber: invoice.number,
+      businessName: view.businessName,
+      clientName: invoice.clientName,
+      title: view.title,
+      pdf,
+      dueDate: view.dueDate,
+    });
+  } catch {
+    result = { ok: false, error: "render-failed" };
+  }
+
+  if (!result.ok) {
+    const code = (result.error || "").toLowerCase().includes("configured") ? "config" : "failed";
+    redirect(`/invoices/${id}?serror=${code}`);
+  }
+
+  // On a successful send, promote a Draft to Sent (never downgrade Paid/etc.).
+  if (invoice.status === "DRAFT") {
+    try {
+      await prisma.invoice.update({ where: { id }, data: { status: "SENT" } });
+    } catch {
+      // Non-fatal; the email already went out.
+    }
+  }
+  revalidatePath("/invoices");
+  revalidatePath(`/invoices/${id}`);
+  redirect(`/invoices/${id}?sent=1`);
 }
 
 export async function deleteInvoice(formData: FormData): Promise<void> {

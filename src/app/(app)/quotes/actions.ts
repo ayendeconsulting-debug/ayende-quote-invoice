@@ -94,7 +94,10 @@ interface Normalized {
   totals: { subtotal: number; discountAmount: number; taxAmount: number; total: number };
 }
 
-function parsePayload(raw: string): { ok: true; data: Normalized } | { ok: false; error: string } {
+function parsePayload(
+  raw: string,
+  opts: { draft?: boolean } = {}
+): { ok: true; data: Normalized } | { ok: false; error: string } {
   let p: QuotePayload;
   try {
     p = JSON.parse(raw) as QuotePayload;
@@ -141,7 +144,7 @@ function parsePayload(raw: string): { ok: true; data: Normalized } | { ok: false
   });
 
   const anyLine = sections.some((sec) => sec.items.some((it) => it.description.length > 0));
-  if (!anyLine) return { ok: false, error: "Add at least one line item before saving." };
+  if (!anyLine && !opts.draft) return { ok: false, error: "Add at least one line item before saving." };
 
   // Only priced, non-informational sections feed the payable total.
   const billableLines = sections
@@ -221,7 +224,8 @@ function scalarData(d: Normalized) {
 }
 
 export async function createQuote(_prev: QuoteState, formData: FormData): Promise<QuoteState> {
-  const parsed = parsePayload(String(formData.get("payload") ?? ""));
+  const draft = String(formData.get("intent") ?? "") === "draft";
+  const parsed = parsePayload(String(formData.get("payload") ?? ""), { draft });
   if (!parsed.ok) return { error: parsed.error };
   const d = parsed.data;
 
@@ -254,7 +258,8 @@ export async function updateQuote(_prev: QuoteState, formData: FormData): Promis
   const id = String(formData.get("id") ?? "").trim();
   if (!id) return { error: "Missing quote id." };
 
-  const parsed = parsePayload(String(formData.get("payload") ?? ""));
+  const draft = String(formData.get("intent") ?? "") === "draft";
+  const parsed = parsePayload(String(formData.get("payload") ?? ""), { draft });
   if (!parsed.ok) return { error: parsed.error };
   const d = parsed.data;
 

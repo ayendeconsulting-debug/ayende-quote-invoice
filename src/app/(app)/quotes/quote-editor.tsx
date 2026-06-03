@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useActionState, useMemo, useState } from "react";
+import { useFormStatus } from "react-dom";
 import { ChevronDown, ChevronUp, Plus, Sparkles, Trash2 } from "lucide-react";
-import { Field, Input, Textarea, Select, SubmitButton, FormMessage } from "@/components/ui/form";
+import { Field, Input, Textarea, Select, FormMessage } from "@/components/ui/form";
 import { createQuote, updateQuote, type QuoteState } from "./actions";
 import { computeTotals, lineAmount, type Currency } from "@/lib/money";
 import {
@@ -484,8 +485,8 @@ export function QuoteEditor({
           </Field>
         </div>
 
-        <div className="flex items-center gap-4">
-          <SubmitButton>{isEdit ? "Save changes" : "Create quote"}</SubmitButton>
+        <div className="flex flex-wrap items-center gap-4">
+          <SaveButtons isEdit={isEdit} />
           <Link href={isEdit ? `/quotes/${initial!.id}` : "/quotes"} className="text-sm text-[var(--color-muted)] hover:text-[var(--color-ink)]">
             Cancel
           </Link>
@@ -573,6 +574,35 @@ function AddSectionMenu({ onAdd }: { onAdd: (kind: SectionKind) => void }) {
           ))}
         </div>
       ) : null}
+    </div>
+  );
+}
+
+// Two-way save: primary (full validation) + "Save as draft" (relaxed). The
+// clicked button's name/value rides along in the FormData so the server action
+// knows which path to take. Both disable while the action is pending.
+function SaveButtons({ isEdit }: { isEdit: boolean }) {
+  const { pending } = useFormStatus();
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        type="submit"
+        name="intent"
+        value="full"
+        disabled={pending}
+        className="inline-flex items-center justify-center rounded-lg bg-[var(--color-accent)] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[var(--color-accent-600)] disabled:opacity-60"
+      >
+        {pending ? "Saving…" : isEdit ? "Save changes" : "Create quote"}
+      </button>
+      <button
+        type="submit"
+        name="intent"
+        value="draft"
+        disabled={pending}
+        className="inline-flex items-center justify-center rounded-lg border border-[var(--color-line)] px-4 py-2.5 text-sm font-medium text-[var(--color-ink-500)] transition hover:border-[var(--color-accent)] disabled:opacity-60"
+      >
+        Save as draft
+      </button>
     </div>
   );
 }

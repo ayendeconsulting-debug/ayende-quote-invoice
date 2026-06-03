@@ -4,9 +4,9 @@ import { Topbar } from "@/components/topbar";
 import { Card } from "@/components/ui/primitives";
 import { Input, Textarea } from "@/components/ui/form";
 import { InvoicePreview } from "@/components/invoice-preview";
-import { ArrowLeft, Send, Undo2, AlertTriangle, Download, FileText, Save, Wallet } from "lucide-react";
+import { ArrowLeft, Send, Undo2, AlertTriangle, Download, FileText, Save, Wallet, Mail, CheckCircle2 } from "lucide-react";
 import { loadInvoiceView } from "../data";
-import { setInvoiceStatus, updateInvoiceMeta } from "../actions";
+import { setInvoiceStatus, updateInvoiceMeta, sendInvoiceToClient } from "../actions";
 import { DeleteInvoiceButton } from "../delete-invoice-button";
 import { PaymentsPanel } from "../payments-panel";
 
@@ -20,10 +20,10 @@ export default async function InvoiceDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string; perror?: string }>;
+  searchParams: Promise<{ error?: string; perror?: string; sent?: string; serror?: string }>;
 }) {
   const { id } = await params;
-  const { error, perror } = await searchParams;
+  const { error, perror, sent, serror } = await searchParams;
 
   const loaded = await loadInvoiceView(id);
   if (!loaded) notFound();
@@ -39,6 +39,16 @@ export default async function InvoiceDetailPage({
             <a href={`/invoices/${invoice.id}/pdf`} target="_blank" rel="noopener" className={btn}>
               <Download size={16} /> PDF
             </a>
+            {invoice.clientEmail ? (
+              <form action={sendInvoiceToClient}>
+                <input type="hidden" name="id" value={invoice.id} />
+                <button type="submit" className={btn}><Mail size={16} /> Send to client</button>
+              </form>
+            ) : (
+              <span className={`${btn} cursor-not-allowed opacity-50`} title="No client email on file">
+                <Mail size={16} /> Send to client
+              </span>
+            )}
             {invoice.status === "DRAFT" ? (
               <form action={setInvoiceStatus}>
                 <input type="hidden" name="id" value={invoice.id} />
@@ -60,6 +70,26 @@ export default async function InvoiceDetailPage({
         <Link href="/invoices" className="mb-5 inline-flex items-center gap-1.5 text-sm text-[var(--color-muted)] hover:text-[var(--color-ink)]">
           <ArrowLeft size={15} /> All invoices
         </Link>
+
+        {sent === "1" ? (
+          <div className="mb-5 flex items-start gap-3 rounded-lg bg-[#e7f4ef] px-4 py-3 text-sm text-[var(--color-teal)]">
+            <CheckCircle2 size={18} className="mt-0.5 shrink-0" />
+            <span>Invoice emailed to {invoice.clientName}{invoice.clientEmail ? ` (${invoice.clientEmail})` : ""}.</span>
+          </div>
+        ) : null}
+
+        {serror ? (
+          <div className="mb-5 flex items-start gap-3 rounded-lg bg-[#fdf3e7] px-4 py-3 text-sm text-[var(--color-amber)]">
+            <AlertTriangle size={18} className="mt-0.5 shrink-0" />
+            <span>
+              {serror === "no-email"
+                ? "This client has no email address on file. Add one on the client record, then send."
+                : serror === "config"
+                ? "Email isn't set up yet (RESEND_API_KEY is not configured). Download the PDF and send it manually, or configure Resend."
+                : "Couldn't send the email. Download the PDF and send manually, or try again."}
+            </span>
+          </div>
+        ) : null}
 
         {error === "has-payments" ? (
           <div className="mb-5 flex items-start gap-3 rounded-lg bg-[#fdf3e7] px-4 py-3 text-sm text-[var(--color-amber)]">
