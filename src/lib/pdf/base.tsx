@@ -153,6 +153,7 @@ export function Letterhead({
   businessEmail,
   businessPhone,
   businessWebsite,
+  taxNumberLine,
 }: {
   docWord: string;
   number?: string | null;
@@ -162,6 +163,7 @@ export function Letterhead({
   businessEmail?: string | null;
   businessPhone?: string | null;
   businessWebsite?: string | null;
+  taxNumberLine?: string | null;
 }) {
   const badge = BADGE_COLORS[status] ?? BADGE_COLORS.DRAFT;
   return (
@@ -174,6 +176,7 @@ export function Letterhead({
         <Text style={styles.bizMeta}>
           {[businessEmail, businessPhone, businessWebsite].filter(Boolean).join("   ·   ")}
         </Text>
+        {taxNumberLine ? <Text style={styles.bizMeta}>{taxNumberLine}</Text> : null}
       </View>
       <View>
         <Text style={styles.docWord}>{docWord}</Text>

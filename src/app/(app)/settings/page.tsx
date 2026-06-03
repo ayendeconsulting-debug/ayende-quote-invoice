@@ -47,6 +47,7 @@ export default async function SettingsPage() {
             defaultCurrency: profile.defaultCurrency,
             defaultTaxRate: String(profile.defaultTaxRate),
             taxLabel: profile.taxLabel,
+            taxNumber: profile.taxNumber,
             quotePrefix: profile.quotePrefix,
             invoicePrefix: profile.invoicePrefix,
             accentColor: profile.accentColor,

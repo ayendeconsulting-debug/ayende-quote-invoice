@@ -30,6 +30,7 @@ export interface QuoteView {
   businessEmail?: string | null;
   businessPhone?: string | null;
   businessWebsite?: string | null;
+  businessTaxNumber?: string | null;
 
   clientName: string;
   clientCompany?: string | null;
@@ -133,6 +134,9 @@ export function QuotePreview({ view }: { view: QuoteView }) {
           <div className="mt-1 text-xs text-[var(--color-muted)]">
             {[view.businessEmail, view.businessPhone, view.businessWebsite].filter(Boolean).join("  ·  ")}
           </div>
+          {view.taxEnabled && view.businessTaxNumber ? (
+            <div className="mt-1 text-xs text-[var(--color-muted)]">{view.taxLabel} No. {view.businessTaxNumber}</div>
+          ) : null}
         </div>
         <div className="text-right">
           <div className="font-display text-2xl tracking-tight text-[var(--color-accent-600)]">QUOTE</div>

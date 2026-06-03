@@ -95,6 +95,7 @@ function QuoteDocument({ view }: { view: QuoteView }) {
           businessEmail={view.businessEmail}
           businessPhone={view.businessPhone}
           businessWebsite={view.businessWebsite}
+          taxNumberLine={view.taxEnabled && view.businessTaxNumber ? `${view.taxLabel} No. ${view.businessTaxNumber}` : null}
         />
         <Parties
           clientName={view.clientName}

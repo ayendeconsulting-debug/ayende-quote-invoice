@@ -21,6 +21,7 @@ type Profile = {
   defaultCurrency: string;
   defaultTaxRate: string; // serialized Decimal
   taxLabel: string;
+  taxNumber: string | null;
   quotePrefix: string;
   invoicePrefix: string;
   accentColor: string;
@@ -105,6 +106,9 @@ export function SettingsForm({ profile }: { profile: Profile }) {
         </Field>
         <Field label="Tax label" htmlFor="taxLabel">
           <Input id="taxLabel" name="taxLabel" defaultValue={profile.taxLabel} />
+        </Field>
+        <Field label="HST / Tax number" htmlFor="taxNumber" hint="Shown on documents when tax is charged, e.g. 721904506RT0001.">
+          <Input id="taxNumber" name="taxNumber" defaultValue={profile.taxNumber ?? ""} />
         </Field>
         <Field label="Default tax rate (%)" htmlFor="defaultTaxRate">
           <Input id="defaultTaxRate" name="defaultTaxRate" type="number" step="0.01" min="0" max="100" defaultValue={profile.defaultTaxRate} />

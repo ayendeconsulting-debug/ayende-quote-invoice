@@ -112,6 +112,7 @@ export async function loadInvoiceView(
     businessEmail: profile.email,
     businessPhone: profile.phone,
     businessWebsite: profile.website,
+    businessTaxNumber: profile.taxNumber,
     clientName: inv.client.name,
     clientCompany: inv.client.company,
     clientAddressLines: addressLines(inv.client),

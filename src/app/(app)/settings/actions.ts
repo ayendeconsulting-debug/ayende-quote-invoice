@@ -53,6 +53,7 @@ export async function updateProfile(_prev: SettingsState, formData: FormData): P
         defaultCurrency: currency,
         defaultTaxRate: taxRate,
         taxLabel: orNull(str(formData, "taxLabel")) ?? "HST",
+        taxNumber: orNull(str(formData, "taxNumber")),
         quotePrefix: orNull(str(formData, "quotePrefix")) ?? "AYC-Q",
         invoicePrefix: orNull(str(formData, "invoicePrefix")) ?? "AYC-INV",
         accentColor,

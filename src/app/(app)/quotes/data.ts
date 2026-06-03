@@ -156,6 +156,7 @@ function buildView(q: QuoteWithRelations, profile: Awaited<ReturnType<typeof get
     businessEmail: profile.email,
     businessPhone: profile.phone,
     businessWebsite: profile.website,
+    businessTaxNumber: profile.taxNumber,
     clientName: q.client.name,
     clientCompany: q.client.company,
     clientAddressLines: addressLines(q.client),

@@ -61,6 +61,7 @@ model BusinessProfile {
   defaultCurrency Currency @default(CAD)
   defaultTaxRate  Decimal  @default(13) @db.Decimal(5, 2)
   taxLabel        String   @default("HST")
+  taxNumber       String?
   quotePrefix     String   @default("AYC-Q")
   invoicePrefix   String   @default("AYC-INV")
   accentColor     String   @default("#E07B39")
