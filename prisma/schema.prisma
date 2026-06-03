@@ -1,0 +1,232 @@
+// Ayende Quote & Invoice Platform — data model
+// Postgres (Neon free tier). Run: npm run db:push && npm run db:seed
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Currency {
+  CAD
+  USD
+}
+
+enum QuoteTemplate {
+  DETAILED // KSQ-style: scope/hours, phases, infra, included/excluded, TCO
+  SIMPLE   // flat itemized list
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+}
+
+enum PaymentMethod {
+  ETRANSFER
+  BANK_TRANSFER
+  CASH
+}
+
+/// Single row holding the Ayende Consulting business profile + defaults.
+model BusinessProfile {
+  id              String   @id @default(cuid())
+  businessName    String   @default("Ayende Consulting Inc.")
+  addressLine1    String?
+  addressLine2    String?
+  city            String?
+  province        String?
+  postalCode      String?
+  country         String   @default("Canada")
+  email           String?
+  phone           String?
+  website         String?
+  logoUrl         String?
+  etransferEmail  String?
+  bankDetails     String?
+  defaultCurrency Currency @default(CAD)
+  defaultTaxRate  Decimal  @default(13) @db.Decimal(5, 2)
+  taxLabel        String   @default("HST")
+  quotePrefix     String   @default("AYC-Q")
+  invoicePrefix   String   @default("AYC-INV")
+  accentColor     String   @default("#E07B39")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+/// Per-year, per-kind sequence for AYC-Q-2026-001 / AYC-INV-2026-001 numbering.
+model DocumentCounter {
+  id   String @id @default(cuid())
+  kind String // "QUOTE" | "INVOICE"
+  year Int
+  seq  Int    @default(0)
+
+  @@unique([kind, year])
+}
+
+model Client {
+  id           String    @id @default(cuid())
+  name         String
+  company      String?
+  email        String?
+  phone        String?
+  addressLine1 String?
+  addressLine2 String?
+  city         String?
+  province     String?
+  postalCode   String?
+  country      String?
+  currency     Currency  @default(CAD)
+  notes        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  quotes       Quote[]
+  invoices     Invoice[]
+}
+
+model Quote {
+  id             String         @id @default(cuid())
+  number         String         @unique
+  client         Client         @relation(fields: [clientId], references: [id])
+  clientId       String
+  template       QuoteTemplate  @default(DETAILED)
+  status         QuoteStatus    @default(DRAFT)
+  currency       Currency       @default(CAD)
+  title          String?
+  introText      String?
+  notes          String?
+  issueDate      DateTime       @default(now())
+  validUntil     DateTime?
+  taxEnabled     Boolean        @default(true)
+  taxRate        Decimal        @default(13) @db.Decimal(5, 2)
+  taxLabel       String         @default("HST")
+  discountType   String? // "PERCENT" | "FIXED"
+  discountValue  Decimal        @default(0) @db.Decimal(12, 2)
+  subtotal       Decimal        @default(0) @db.Decimal(12, 2)
+  discountAmount Decimal        @default(0) @db.Decimal(12, 2)
+  taxAmount      Decimal        @default(0) @db.Decimal(12, 2)
+  total          Decimal        @default(0) @db.Decimal(12, 2)
+  shareToken     String?        @unique
+  acceptedByName String?
+  acceptedByEmail String?
+  acceptedAt     DateTime?
+  declinedAt     DateTime?
+  declineReason  String?
+  sentAt         DateTime?
+  sections       QuoteSection[]
+  invoice        Invoice?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model QuoteSection {
+  id        String          @id @default(cuid())
+  quote     Quote           @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  quoteId   String
+  kind      String // SCOPE | INVESTMENT | INFRASTRUCTURE | INCLUDED | EXCLUDED | TCO | GENERIC
+  title     String
+  sortOrder Int             @default(0)
+  items     QuoteLineItem[]
+}
+
+model QuoteLineItem {
+  id          String       @id @default(cuid())
+  section     QuoteSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  sectionId   String
+  description String
+  detail      String?
+  hours       Decimal?     @db.Decimal(12, 2) // Phase 3: if set, amount = hours * unitPrice (KSQ behaviour)
+  quantity    Decimal      @default(1) @db.Decimal(12, 2)
+  unit        String? // "hrs", "ea", "mo"
+  unitPrice   Decimal      @default(0) @db.Decimal(12, 2)
+  amount      Decimal      @default(0) @db.Decimal(12, 2)
+  sortOrder   Int          @default(0)
+}
+
+model Invoice {
+  id             String            @id @default(cuid())
+  number         String            @unique
+  client         Client            @relation(fields: [clientId], references: [id])
+  clientId       String
+  sourceQuote    Quote?            @relation(fields: [sourceQuoteId], references: [id])
+  sourceQuoteId  String?           @unique
+  status         InvoiceStatus     @default(DRAFT)
+  currency       Currency          @default(CAD)
+  title          String?
+  notes          String?
+  issueDate      DateTime          @default(now())
+  dueDate        DateTime?
+  taxEnabled     Boolean           @default(true)
+  taxRate        Decimal           @default(13) @db.Decimal(5, 2)
+  taxLabel       String            @default("HST")
+  discountType   String?
+  discountValue  Decimal           @default(0) @db.Decimal(12, 2)
+  subtotal       Decimal           @default(0) @db.Decimal(12, 2)
+  discountAmount Decimal           @default(0) @db.Decimal(12, 2)
+  taxAmount      Decimal           @default(0) @db.Decimal(12, 2)
+  total          Decimal           @default(0) @db.Decimal(12, 2)
+  amountPaid     Decimal           @default(0) @db.Decimal(12, 2)
+  lineItems      InvoiceLineItem[]
+  payments       Payment[]
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+}
+
+model InvoiceLineItem {
+  id          String   @id @default(cuid())
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoiceId   String
+  description String
+  detail      String?
+  hours       Decimal? @db.Decimal(12, 2) // mirrors QuoteLineItem for clean quote->invoice conversion (Phase 6)
+  quantity    Decimal  @default(1) @db.Decimal(12, 2)
+  unit        String?
+  unitPrice   Decimal  @default(0) @db.Decimal(12, 2)
+  amount      Decimal  @default(0) @db.Decimal(12, 2)
+  sortOrder   Int      @default(0)
+}
+
+model Payment {
+  id        String        @id @default(cuid())
+  invoice   Invoice       @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoiceId String
+  date      DateTime      @default(now())
+  amount    Decimal       @db.Decimal(12, 2)
+  method    PaymentMethod
+  reference String?
+  createdAt DateTime      @default(now())
+}
+
+/// Reusable line items the user can insert into quotes instead of retyping.
+/// Seeded from the KSQ quotation; fully editable in Settings → Catalog.
+/// Quotes snapshot their own line items, so editing/deleting a catalog entry
+/// never affects quotes already saved.
+model CatalogItem {
+  id          String   @id @default(cuid())
+  sectionKind String // SCOPE | INVESTMENT | INFRASTRUCTURE | INCLUDED | EXCLUDED | TCO | GENERIC
+  description String
+  detail      String?
+  hours       Decimal? @db.Decimal(12, 2)
+  quantity    Decimal  @default(1) @db.Decimal(12, 2)
+  unit        String?
+  unitPrice   Decimal  @default(0) @db.Decimal(12, 2)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sectionKind, sortOrder])
+}

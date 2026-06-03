@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ */
+/*  Ayende Consulting — brand theme                                    */
+/*  Deep navy ink + warm coral accent. Editorial serif display paired  */
+/*  with a clean grotesque body.                                       */
+/* ------------------------------------------------------------------ */
+
+@theme {
+  --color-ink: #0d1b2a;        /* deep navy — primary surfaces / sidebar */
+  --color-ink-700: #1b2c3f;
+  --color-ink-500: #3a4d61;
+  --color-ink-300: #7e8c9a;
+
+  --color-accent: #e07b39;     /* warm coral — primary actions */
+  --color-accent-600: #c4641f;
+  --color-accent-100: #faece1;
+
+  --color-paper: #f7f5f0;      /* warm off-white page background */
+  --color-surface: #ffffff;
+  --color-line: #e4e0d8;       /* hairline borders */
+  --color-muted: #6b7280;
+
+  --color-teal: #0f6e56;       /* positive / paid */
+  --color-amber: #b45309;      /* pending / overdue accent */
+  --color-rose: #b3261e;       /* declined / danger */
+
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 14px;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+  }
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  ::selection {
+    background: var(--color-accent-100);
+  }
+}
+
+/* Thin scrollbars inside the app shell */
+.scroll-slim::-webkit-scrollbar { width: 8px; height: 8px; }
+.scroll-slim::-webkit-scrollbar-thumb { background: var(--color-line); border-radius: 8px; }
