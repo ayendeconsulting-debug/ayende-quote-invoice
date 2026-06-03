@@ -296,6 +296,9 @@ export async function sendInvoiceToClient(formData: FormData): Promise<void> {
   }
 
   if (!result.ok) {
+    // Secret-safe: logs Resend's reason (e.g. unverified domain / from address),
+    // never the API key. Read in Vercel function logs, then remove.
+    console.error("[invoice-email] send failed:", result.error);
     const code = (result.error || "").toLowerCase().includes("configured") ? "config" : "failed";
     redirect(`/invoices/${id}?serror=${code}`);
   }
