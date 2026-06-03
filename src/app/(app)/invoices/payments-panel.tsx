@@ -86,7 +86,7 @@ export function PaymentsPanel({
         <p className="text-sm text-[var(--color-ink-300)]">No payments recorded yet.</p>
       ) : (
         <div className="overflow-hidden rounded-lg border border-[var(--color-line)]">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-sm">
             <thead>
               <tr className="border-b border-[var(--color-line)] text-left text-[var(--color-muted)]">
                 <th className="px-4 py-2.5 font-medium">Date</th>
@@ -156,7 +156,7 @@ export function PaymentsPanel({
                 )
               )}
             </tbody>
-          </table>
+          </table></div>
         </div>
       )}
     </div>

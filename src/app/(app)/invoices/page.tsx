@@ -41,7 +41,7 @@ export default async function InvoicesPage({
         subtitle="Bill clients and watch the balance."
         action={<PrimaryLink href="/invoices/new">New invoice</PrimaryLink>}
       />
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="mb-5 flex flex-wrap gap-1.5">
           {FILTERS.map((f) => (
             <Link
@@ -71,7 +71,7 @@ export default async function InvoicesPage({
           )
         ) : (
           <div className="overflow-hidden rounded-[var(--radius-card)] border border-[var(--color-line)] bg-white">
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-sm">
               <thead>
                 <tr className="border-b border-[var(--color-line)] text-left text-[var(--color-muted)]">
                   <th className="px-5 py-3 font-medium">Number</th>
@@ -104,7 +104,7 @@ export default async function InvoicesPage({
                   );
                 })}
               </tbody>
-            </table>
+            </table></div>
           </div>
         )}
       </div>

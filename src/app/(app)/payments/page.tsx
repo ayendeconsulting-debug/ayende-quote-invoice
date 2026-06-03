@@ -48,7 +48,7 @@ export default async function PaymentsPage({
   return (
     <>
       <Topbar title="Payments" subtitle="Every payment recorded across your invoices." />
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap gap-1.5">
             {FILTERS.map((f) => (
@@ -85,7 +85,7 @@ export default async function PaymentsPage({
           />
         ) : (
           <div className="overflow-hidden rounded-[var(--radius-card)] border border-[var(--color-line)] bg-white">
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-sm">
               <thead>
                 <tr className="border-b border-[var(--color-line)] text-left text-[var(--color-muted)]">
                   <th className="px-5 py-3 font-medium">Date</th>
@@ -114,7 +114,7 @@ export default async function PaymentsPage({
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         )}
       </div>

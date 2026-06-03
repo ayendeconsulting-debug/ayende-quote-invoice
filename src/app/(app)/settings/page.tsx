@@ -12,7 +12,7 @@ export default async function SettingsPage() {
   return (
     <>
       <Topbar title="Settings" subtitle="Business profile, branding, tax, and numbering." />
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <Link
           href="/settings/catalog"
           className="mb-6 flex max-w-2xl items-center justify-between rounded-[var(--radius-card)] border border-[var(--color-line)] bg-white px-5 py-4 transition hover:border-[var(--color-accent)]"

@@ -40,7 +40,7 @@ export default async function RecurringPage({
         subtitle="Schedules that generate draft invoices automatically."
         action={<PrimaryLink href="/recurring/new">New schedule</PrimaryLink>}
       />
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         {sp.created || sp.updated ? (
           <div className="mb-5 flex items-start gap-3 rounded-lg bg-[#e7f4ef] px-4 py-3 text-sm text-[var(--color-teal)]">
             <CheckCircle2 size={18} className="mt-0.5 shrink-0" />
@@ -68,7 +68,7 @@ export default async function RecurringPage({
           />
         ) : (
           <Card>
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-sm">
               <thead>
                 <tr className="border-b border-[var(--color-line)] text-left text-[var(--color-muted)]">
                   <th className="px-5 py-3 font-medium">Client</th>
@@ -125,7 +125,7 @@ export default async function RecurringPage({
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </Card>
         )}
       </div>

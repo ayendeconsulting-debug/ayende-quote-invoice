@@ -57,7 +57,7 @@ export default async function DashboardPage() {
         action={<PrimaryLink href="/quotes/new">New quote</PrimaryLink>}
       />
 
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <Card className="p-5">
             <p className="text-sm text-[var(--color-muted)]">Outstanding receivables</p>

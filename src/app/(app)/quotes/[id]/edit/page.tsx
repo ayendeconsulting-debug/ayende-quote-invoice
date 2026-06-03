@@ -17,7 +17,7 @@ export default async function EditQuotePage({ params }: { params: Promise<{ id: 
   return (
     <>
       <Topbar title={`Edit ${initial.number}`} subtitle={initial.title ?? "Update the quote."} />
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <QuoteEditor clients={clients} profile={profile} catalog={catalog} initial={initial} />
       </div>
     </>

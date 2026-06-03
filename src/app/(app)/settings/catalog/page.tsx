@@ -24,7 +24,7 @@ export default async function CatalogPage() {
         subtitle="Reusable items you can insert into quotes."
         action={<PrimaryLink href="/settings/catalog/new">New item</PrimaryLink>}
       />
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <Link href="/settings" className="mb-5 inline-flex items-center gap-1.5 text-sm text-[var(--color-muted)] hover:text-[var(--color-ink)]">
           <ArrowLeft size={15} /> Settings
         </Link>
@@ -44,7 +44,7 @@ export default async function CatalogPage() {
                   <h2 className="font-display text-base">{g.label}</h2>
                   <span className="text-xs uppercase tracking-wide text-[var(--color-ink-300)]">{g.kind} · {g.rows.length}</span>
                 </div>
-                <table className="w-full text-sm">
+                <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-sm">
                   <tbody>
                     {g.rows.map((it: (typeof g.rows)[number]) => (
                       <tr key={it.id} className="border-b border-[var(--color-line)] align-top last:border-0">
@@ -66,7 +66,7 @@ export default async function CatalogPage() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </table></div>
               </div>
             ))}
           </div>

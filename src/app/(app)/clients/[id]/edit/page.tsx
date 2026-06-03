@@ -13,7 +13,7 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
   return (
     <>
       <Topbar title={`Edit ${client.name}`} subtitle="Update client details." />
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <ClientForm
           initial={{
             id: client.id,

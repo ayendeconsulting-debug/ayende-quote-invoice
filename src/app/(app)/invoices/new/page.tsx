@@ -12,7 +12,7 @@ export default async function NewInvoicePage() {
   return (
     <>
       <Topbar title="New invoice" subtitle="Bill a client directly." />
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         {clients.length === 0 ? (
           <EmptyState
             icon={<Users size={22} />}

@@ -33,7 +33,7 @@ export default async function ClientsPage({
         subtitle="People and companies you quote and invoice."
         action={<PrimaryLink href="/clients/new">New client</PrimaryLink>}
       />
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="mb-5">
           <SearchBox initialQuery={q} />
         </div>
@@ -55,7 +55,7 @@ export default async function ClientsPage({
           )
         ) : (
           <div className="overflow-hidden rounded-[var(--radius-card)] border border-[var(--color-line)] bg-white">
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-sm">
               <thead>
                 <tr className="border-b border-[var(--color-line)] text-left text-[var(--color-muted)]">
                   <th className="px-5 py-3 font-medium">Name</th>
@@ -78,7 +78,7 @@ export default async function ClientsPage({
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         )}
       </div>

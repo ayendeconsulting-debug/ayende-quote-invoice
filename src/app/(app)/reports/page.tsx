@@ -97,7 +97,7 @@ export default async function ReportsPage({
   return (
     <>
       <Topbar title="Reports" subtitle="Receivables, revenue, and acceptance rates." />
-      <div className="space-y-6 p-8">
+      <div className="space-y-6 p-4 sm:p-6 lg:p-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Suspense>
             <PeriodPicker />
@@ -146,7 +146,7 @@ export default async function ReportsPage({
           {paid.months.length === 0 ? (
             <p className="px-5 py-8 text-center text-sm text-[var(--color-muted)]">No payments in this period.</p>
           ) : (
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-sm">
               <thead>
                 <tr className="border-b border-[var(--color-line)] text-left text-[var(--color-muted)]">
                   <th className="px-5 py-3 font-medium">Month</th>
@@ -163,7 +163,7 @@ export default async function ReportsPage({
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           )}
         </Card>
 
@@ -174,7 +174,7 @@ export default async function ReportsPage({
           {revenue.length === 0 ? (
             <p className="px-5 py-8 text-center text-sm text-[var(--color-muted)]">No activity in this period.</p>
           ) : (
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-sm">
               <thead>
                 <tr className="border-b border-[var(--color-line)] text-left text-[var(--color-muted)]">
                   <th className="px-5 py-3 font-medium">Client</th>
@@ -193,7 +193,7 @@ export default async function ReportsPage({
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           )}
         </Card>
 
@@ -228,7 +228,7 @@ export default async function ReportsPage({
 
 function OpenInvoiceTable({ rows }: { rows: ReceivablesRow[] }) {
   return (
-    <table className="w-full text-sm">
+    <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-sm">
       <thead>
         <tr className="border-b border-[var(--color-line)] text-left text-[var(--color-muted)]">
           <th className="px-5 py-3 font-medium">Invoice</th>
@@ -253,6 +253,6 @@ function OpenInvoiceTable({ rows }: { rows: ReceivablesRow[] }) {
           </tr>
         ))}
       </tbody>
-    </table>
+    </table></div>
   );
 }

@@ -66,7 +66,7 @@ export default async function InvoiceDetailPage({
           </>
         }
       />
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <Link href="/invoices" className="mb-5 inline-flex items-center gap-1.5 text-sm text-[var(--color-muted)] hover:text-[var(--color-ink)]">
           <ArrowLeft size={15} /> All invoices
         </Link>

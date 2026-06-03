@@ -13,7 +13,7 @@ export default async function EditCatalogItemPage({ params }: { params: Promise<
   return (
     <>
       <Topbar title="Edit catalog item" subtitle={item.description} />
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <CatalogItemForm
           initial={{
             id: item.id,
