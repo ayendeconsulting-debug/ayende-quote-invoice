@@ -96,6 +96,7 @@ model Client {
   updatedAt    DateTime  @updatedAt
   quotes       Quote[]
   invoices     Invoice[]
+  recurringInvoices RecurringInvoice[]
 }
 
 model Quote {
@@ -229,4 +230,68 @@ model CatalogItem {
   updatedAt   DateTime @updatedAt
 
   @@index([sectionKind, sortOrder])
+}
+
+// ---------------------------------------------------------------------------
+// Recurring / scheduled invoicing. A schedule snapshots a line-item template;
+// on its nextRunDate the cron (or a manual "Generate now") creates a normal
+// DRAFT Invoice from the snapshot, then advances the schedule.
+// ---------------------------------------------------------------------------
+enum RecurrenceUnit {
+  DAY
+  WEEK
+  MONTH
+}
+
+enum RecurringStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+}
+
+enum RecurrenceEndMode {
+  NEVER
+  ON_DATE
+  AFTER_N
+}
+
+model RecurringInvoice {
+  id                   String                     @id @default(cuid())
+  client               Client                     @relation(fields: [clientId], references: [id])
+  clientId             String
+  currency             Currency                   @default(CAD)
+  title                String?
+  notes                String?
+  taxEnabled           Boolean                    @default(true)
+  taxRate              Decimal                    @default(13) @db.Decimal(5, 2)
+  taxLabel             String                     @default("HST")
+  discountType         String?
+  discountValue        Decimal                    @default(0) @db.Decimal(12, 2)
+  intervalUnit         RecurrenceUnit             @default(MONTH)
+  intervalCount        Int                        @default(1)
+  startDate            DateTime
+  nextRunDate          DateTime
+  status               RecurringStatus            @default(ACTIVE)
+  endMode              RecurrenceEndMode          @default(NEVER)
+  endDate              DateTime?
+  maxOccurrences       Int?
+  occurrencesGenerated Int                        @default(0)
+  lineItems            RecurringInvoiceLineItem[]
+  createdAt            DateTime                   @default(now())
+  updatedAt            DateTime                   @updatedAt
+
+  @@index([status, nextRunDate])
+}
+
+model RecurringInvoiceLineItem {
+  id          String           @id @default(cuid())
+  recurring   RecurringInvoice @relation(fields: [recurringId], references: [id], onDelete: Cascade)
+  recurringId String
+  description String
+  detail      String?
+  hours       Decimal?         @db.Decimal(12, 2)
+  quantity    Decimal          @default(1) @db.Decimal(12, 2)
+  unit        String?
+  unitPrice   Decimal          @default(0) @db.Decimal(12, 2)
+  sortOrder   Int              @default(0)
 }
