@@ -335,17 +335,22 @@ export async function emailQuote(_prev: EmailState, formData: FormData): Promise
     if (!q) return { ok: false, message: "Quote not found." };
     if (!q.client.email) return { ok: false, message: "This client has no email address. Add one on the client record, or copy the link and send it manually." };
 
+    // Capture before the (possible) reassignment below — reassigning `q` would
+    // otherwise discard the non-null narrowing on q.client.email.
+    const toEmail: string = q.client.email;
+    const clientName: string = q.client.name;
+
     if (!q.shareToken) {
       q = await prisma.quote.update({ where: { id }, data: { shareToken: newShareToken() }, include: { client: true } });
     }
 
     const profile = await getBusinessProfile();
     const result = await sendQuoteShareEmail({
-      to: q.client.email,
+      to: toEmail,
       quoteNumber: q.number,
       token: q.shareToken!,
       businessName: profile.businessName,
-      clientName: q.client.name,
+      clientName,
       title: q.title,
       message,
     });
