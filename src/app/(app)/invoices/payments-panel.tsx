@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Pencil, Trash2, Check, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, X, Mail, CheckCircle2 } from "lucide-react";
 import { formatMoney, type Currency } from "@/lib/money";
-import { recordPayment, updatePayment, deletePayment } from "../payments/actions";
+import { recordPayment, updatePayment, deletePayment, sendPaymentReceipt } from "../payments/actions";
 
 export interface PaymentItem {
   id: string;
@@ -12,6 +12,8 @@ export interface PaymentItem {
   amount: number;
   method: string;
   reference: string | null;
+  receiptSent: boolean;
+  receiptSentPretty?: string | null;
 }
 
 const METHOD_LABEL: Record<string, string> = {
@@ -38,12 +40,14 @@ export function PaymentsPanel({
   currency,
   balanceDue,
   payments,
+  clientEmail,
 }: {
   invoiceId: string;
   status: string;
   currency: Currency;
   balanceDue: number;
   payments: PaymentItem[];
+  clientEmail?: string | null;
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const today = new Date().toISOString().slice(0, 10);
@@ -79,6 +83,10 @@ export function PaymentsPanel({
               <Plus size={15} /> Record
             </button>
           </div>
+          <label className="mt-3 flex items-center gap-2 text-xs text-[var(--color-ink-500)]">
+            <input type="checkbox" name="sendReceipt" disabled={!clientEmail} />
+            {clientEmail ? "Email a receipt to the client after recording" : "Email a receipt (add a client email to enable)"}
+          </label>
         </form>
       )}
 
@@ -136,6 +144,19 @@ export function PaymentsPanel({
                     <td className="px-4 py-2.5 text-right tabular-nums text-[var(--color-ink)]">{formatMoney(p.amount, currency)}</td>
                     <td className="px-4 py-2.5">
                       <div className="flex items-center justify-end gap-1">
+                        {p.receiptSent ? (
+                          <span className="mr-1 inline-flex items-center gap-1 text-xs text-[var(--color-teal)]" title={p.receiptSentPretty ? `Receipt sent ${p.receiptSentPretty}` : "Receipt sent"}>
+                            <CheckCircle2 size={13} /> Receipt
+                          </span>
+                        ) : null}
+                        {clientEmail ? (
+                          <form action={sendPaymentReceipt}>
+                            <input type="hidden" name="paymentId" value={p.id} />
+                            <button type="submit" className="rounded p-1 text-[var(--color-ink-300)] hover:text-[var(--color-accent-600)]" aria-label={p.receiptSent ? "Resend receipt" : "Send receipt"} title={p.receiptSent ? "Resend receipt" : "Send receipt"}>
+                              <Mail size={15} />
+                            </button>
+                          </form>
+                        ) : null}
                         <button type="button" onClick={() => setEditingId(p.id)} className="rounded p-1 text-[var(--color-ink-300)] hover:text-[var(--color-ink)]" aria-label="Edit payment">
                           <Pencil size={15} />
                         </button>
