@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Plus, Pencil, Trash2, Check, X, Mail, CheckCircle2 } from "lucide-react";
-import { formatMoney, type Currency } from "@/lib/money";
+import { formatMoney, round2, type Currency } from "@/lib/money";
 import { recordPayment, updatePayment, deletePayment, sendPaymentReceipt } from "../payments/actions";
 
 export interface PaymentItem {
@@ -41,6 +41,8 @@ export function PaymentsPanel({
   balanceDue,
   payments,
   clientEmail,
+  invoiceTotal,
+  amountPaid,
 }: {
   invoiceId: string;
   status: string;
@@ -48,10 +50,23 @@ export function PaymentsPanel({
   balanceDue: number;
   payments: PaymentItem[];
   clientEmail?: string | null;
+  invoiceTotal: number;
+  amountPaid: number;
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const today = new Date().toISOString().slice(0, 10);
   const defaultAmount = balanceDue > 0 ? String(balanceDue) : "";
+
+  const [recordAmount, setRecordAmount] = useState(defaultAmount);
+  const [editAmount, setEditAmount] = useState("");
+  const toNum = (v: string) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  };
+  // Overpayment = the new total paid would exceed the invoice total.
+  const recordOverage = round2(amountPaid + toNum(recordAmount) - invoiceTotal);
+  const overageMsg = (over: number) =>
+    `This payment exceeds the balance owed by ${formatMoney(over, currency)}. It will be recorded as an overpayment and leave a credit of ${formatMoney(over, currency)}. Record it anyway?`;
 
   return (
     <div className="space-y-5">
@@ -60,7 +75,13 @@ export function PaymentsPanel({
           Mark this invoice as <span className="font-medium">Sent</span> before recording payments.
         </p>
       ) : (
-        <form action={recordPayment} className="rounded-lg border border-[var(--color-line)] bg-[var(--color-paper)]/50 p-4">
+        <form
+          action={recordPayment}
+          onSubmit={(e) => {
+            if (recordOverage > 0.005 && !confirm(overageMsg(recordOverage))) e.preventDefault();
+          }}
+          className="rounded-lg border border-[var(--color-line)] bg-[var(--color-paper)]/50 p-4"
+        >
           <input type="hidden" name="invoiceId" value={invoiceId} />
           <div className="flex flex-wrap items-end gap-3">
             <label className="flex flex-col gap-1 text-xs text-[var(--color-muted)]">
@@ -69,7 +90,7 @@ export function PaymentsPanel({
             </label>
             <label className="flex flex-col gap-1 text-xs text-[var(--color-muted)]">
               Amount ({currency})
-              <input type="number" name="amount" min="0.01" step="0.01" defaultValue={defaultAmount} placeholder="0.00" className={`${cell} w-32`} required />
+              <input type="number" name="amount" min="0.01" step="0.01" value={recordAmount} onChange={(e) => setRecordAmount(e.target.value)} placeholder="0.00" className={`${cell} w-32`} required />
             </label>
             <label className="flex flex-col gap-1 text-xs text-[var(--color-muted)]">
               Method
@@ -83,6 +104,11 @@ export function PaymentsPanel({
               <Plus size={15} /> Record
             </button>
           </div>
+          {recordOverage > 0.005 ? (
+            <p className="mt-3 rounded-lg bg-[#fdf3e7] px-3 py-2 text-xs text-[var(--color-amber)]">
+              Exceeds the balance owed by {formatMoney(recordOverage, currency)} — this will record an overpayment and leave a credit. You&rsquo;ll be asked to confirm.
+            </p>
+          ) : null}
           <label className="mt-3 flex items-center gap-2 text-xs text-[var(--color-ink-500)]">
             <input type="checkbox" name="sendReceipt" disabled={!clientEmail} />
             {clientEmail ? "Email a receipt to the client after recording" : "Email a receipt (add a client email to enable)"}
@@ -109,7 +135,14 @@ export function PaymentsPanel({
                 editingId === p.id ? (
                   <tr key={p.id} className="border-b border-[var(--color-line)] last:border-0 bg-[var(--color-paper)]/40">
                     <td colSpan={5} className="px-4 py-3">
-                      <form action={updatePayment} className="flex flex-wrap items-end gap-3">
+                      <form
+                        action={updatePayment}
+                        onSubmit={(e) => {
+                          const over = round2(amountPaid - p.amount + toNum(editAmount) - invoiceTotal);
+                          if (over > 0.005 && !confirm(overageMsg(over))) e.preventDefault();
+                        }}
+                        className="flex flex-wrap items-end gap-3"
+                      >
                         <input type="hidden" name="id" value={p.id} />
                         <label className="flex flex-col gap-1 text-xs text-[var(--color-muted)]">
                           Date
@@ -117,7 +150,7 @@ export function PaymentsPanel({
                         </label>
                         <label className="flex flex-col gap-1 text-xs text-[var(--color-muted)]">
                           Amount ({currency})
-                          <input type="number" name="amount" min="0.01" step="0.01" defaultValue={String(p.amount)} className={`${cell} w-32`} required />
+                          <input type="number" name="amount" min="0.01" step="0.01" value={editAmount} onChange={(e) => setEditAmount(e.target.value)} className={`${cell} w-32`} required />
                         </label>
                         <label className="flex flex-col gap-1 text-xs text-[var(--color-muted)]">
                           Method
@@ -133,6 +166,11 @@ export function PaymentsPanel({
                         <button type="button" onClick={() => setEditingId(null)} className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-line)] px-3 py-2 text-sm text-[var(--color-ink-500)] hover:border-[var(--color-ink)]">
                           <X size={15} /> Cancel
                         </button>
+                        {round2(amountPaid - p.amount + toNum(editAmount) - invoiceTotal) > 0.005 ? (
+                          <p className="w-full rounded-lg bg-[#fdf3e7] px-3 py-2 text-xs text-[var(--color-amber)]">
+                            Exceeds the balance owed by {formatMoney(round2(amountPaid - p.amount + toNum(editAmount) - invoiceTotal), currency)} — saving will record an overpayment (credit). You&rsquo;ll be asked to confirm.
+                          </p>
+                        ) : null}
                       </form>
                     </td>
                   </tr>
@@ -157,7 +195,7 @@ export function PaymentsPanel({
                             </button>
                           </form>
                         ) : null}
-                        <button type="button" onClick={() => setEditingId(p.id)} className="rounded p-1 text-[var(--color-ink-300)] hover:text-[var(--color-ink)]" aria-label="Edit payment">
+                        <button type="button" onClick={() => { setEditingId(p.id); setEditAmount(String(p.amount)); }} className="rounded p-1 text-[var(--color-ink-300)] hover:text-[var(--color-ink)]" aria-label="Edit payment">
                           <Pencil size={15} />
                         </button>
                         <form

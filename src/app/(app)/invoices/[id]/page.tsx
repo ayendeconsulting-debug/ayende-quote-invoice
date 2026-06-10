@@ -174,6 +174,8 @@ export default async function InvoiceDetailPage({
               balanceDue={view.balanceDue}
               payments={payments}
               clientEmail={invoice.clientEmail}
+              invoiceTotal={view.totals.total}
+              amountPaid={view.amountPaid}
             />
           </Card>
 
