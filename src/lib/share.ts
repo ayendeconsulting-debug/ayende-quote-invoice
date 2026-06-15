@@ -12,6 +12,11 @@ export function shareUrl(token: string): string {
   return `${appBaseUrl()}/q/${token}`;
 }
 
+/** Public closeout URL for a given token. */
+export function closeoutUrl(token: string): string {
+  return `${appBaseUrl()}/closeout/${token}`;
+}
+
 /** Generate a URL-safe random share token. */
 export function newShareToken(): string {
   return randomBytes(18).toString("base64url");

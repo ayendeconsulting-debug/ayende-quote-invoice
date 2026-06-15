@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
 
 // Paths that never require authentication.
-const PUBLIC_PREFIXES = ["/login", "/api/auth", "/api/cron", "/q/"]; // /q/ = public share links; /api/cron = CRON_SECRET-guarded
+const PUBLIC_PREFIXES = ["/login", "/api/auth", "/api/cron", "/q/", "/closeout/"]; // /q/ + /closeout/ = public client links; /api/cron = CRON_SECRET-guarded
 
 function isPublic(pathname: string): boolean {
   return PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(p));

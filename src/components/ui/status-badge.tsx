@@ -9,6 +9,7 @@ const STYLES: Record<string, string> = {
   PARTIALLY_PAID: "bg-[#fdf3e7] text-[var(--color-amber)] border-[#f3e2c8]",
   PAID: "bg-[#e7f4ef] text-[var(--color-teal)] border-[#cfe9df]",
   OVERDUE: "bg-[#fdecea] text-[var(--color-rose)] border-[#f6d6d2]",
+  SIGNED: "bg-[#e7f4ef] text-[var(--color-teal)] border-[#cfe9df]",
 };
 
 const LABELS: Record<string, string> = {
@@ -20,6 +21,7 @@ const LABELS: Record<string, string> = {
   PARTIALLY_PAID: "Partially paid",
   PAID: "Paid",
   OVERDUE: "Overdue",
+  SIGNED: "Signed",
 };
 
 export function StatusBadge({ status }: { status: string }): ReactNode {

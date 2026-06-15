@@ -3,10 +3,12 @@ import { notFound } from "next/navigation";
 import { Topbar } from "@/components/topbar";
 import { Card } from "@/components/ui/primitives";
 import { QuotePreview } from "@/components/quote-preview";
-import { ArrowLeft, Pencil, Send, Undo2, AlertTriangle, Download, Check, X, Link2, ReceiptText } from "lucide-react";
+import { ArrowLeft, Pencil, Send, Undo2, AlertTriangle, Download, Check, X, Link2, ReceiptText, ListChecks } from "lucide-react";
 import { loadQuoteView } from "../data";
 import { setQuoteStatus, ensureShareToken } from "../actions";
 import { convertQuoteToInvoice } from "../../invoices/actions";
+import { generateCloseout } from "./closeout/actions";
+import { prisma } from "@/lib/prisma";
 import { DeleteQuoteButton } from "../delete-quote-button";
 import { SharePanel } from "./share-panel";
 import { shareUrl } from "@/lib/share";
@@ -32,6 +34,7 @@ export default async function QuoteDetailPage({
 
   const editable = quote.status === "DRAFT" || quote.status === "SENT";
   const url = quote.shareToken ? shareUrl(quote.shareToken) : null;
+  const closeout = await prisma.closeout.findUnique({ where: { quoteId: id }, select: { status: true, signedByName: true } });
 
   return (
     <>
@@ -128,6 +131,39 @@ export default async function QuoteDetailPage({
                   <input type="hidden" name="id" value={quote.id} />
                   <button type="submit" className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-white transition hover:bg-[var(--color-accent-600)]">
                     <Link2 size={16} /> Generate share link
+                  </button>
+                </form>
+              </div>
+            )}
+          </Card>
+
+          <Card className="p-6">
+            <div className="mb-4 flex items-center gap-2">
+              <ListChecks size={16} className="text-[var(--color-accent-600)]" />
+              <h2 className="font-display text-base text-[var(--color-ink)]">Project closeout</h2>
+            </div>
+            {closeout ? (
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="text-sm text-[var(--color-muted)]">
+                  {closeout.status === "SIGNED"
+                    ? `Signed off${closeout.signedByName ? ` by ${closeout.signedByName}` : ""}.`
+                    : closeout.status === "SENT"
+                    ? "Sent to the client — awaiting sign-off."
+                    : "Draft — edit the checklist, then share the link."}
+                </p>
+                <Link href={`/quotes/${quote.id}/closeout`} className="inline-flex items-center gap-2 rounded-lg border border-[var(--color-line)] px-4 py-2 text-sm text-[var(--color-ink-500)] transition hover:border-[var(--color-ink)]">
+                  <ListChecks size={16} /> {closeout.status === "SIGNED" ? "View closeout" : "Manage closeout"}
+                </Link>
+              </div>
+            ) : (
+              <div>
+                <p className="text-sm text-[var(--color-muted)]">
+                  Generate a client checklist from this quote&rsquo;s scope items. Your client ticks off each deliverable and signs off the project online.
+                </p>
+                <form action={generateCloseout} className="mt-3">
+                  <input type="hidden" name="quoteId" value={quote.id} />
+                  <button type="submit" className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-white transition hover:bg-[var(--color-accent-600)]">
+                    <ListChecks size={16} /> Generate closeout
                   </button>
                 </form>
               </div>

@@ -131,6 +131,7 @@ model Quote {
   sentAt         DateTime?
   sections       QuoteSection[]
   invoice        Invoice?
+  closeout       Closeout?
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 }
@@ -210,6 +211,7 @@ model Payment {
   amount    Decimal       @db.Decimal(12, 2)
   method    PaymentMethod
   reference String?
+  receiptSentAt DateTime?
   createdAt DateTime      @default(now())
 }
 
@@ -295,4 +297,43 @@ model RecurringInvoiceLineItem {
   unit        String?
   unitPrice   Decimal          @default(0) @db.Decimal(12, 2)
   sortOrder   Int              @default(0)
+}
+
+// ---------------------------------------------------------------------------
+// Project closeout. Generated from a quote's Scope items into a client-facing
+// checklist with a public share link; the client ticks items and signs off.
+// ---------------------------------------------------------------------------
+enum CloseoutStatus {
+  DRAFT
+  SENT
+  SIGNED
+}
+
+model Closeout {
+  id            String          @id @default(cuid())
+  quote         Quote           @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  quoteId       String          @unique
+  shareToken    String          @unique
+  title         String?
+  introNote     String?
+  status        CloseoutStatus  @default(DRAFT)
+  signedByName  String?
+  signedByEmail String?
+  signedAt      DateTime?
+  items         CloseoutItem[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model CloseoutItem {
+  id          String    @id @default(cuid())
+  closeout    Closeout  @relation(fields: [closeoutId], references: [id], onDelete: Cascade)
+  closeoutId  String
+  label       String
+  detail      String?
+  checked     Boolean   @default(false)
+  completedAt DateTime?
+  sortOrder   Int       @default(0)
+
+  @@index([closeoutId, sortOrder])
 }
