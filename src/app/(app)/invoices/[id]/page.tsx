@@ -20,10 +20,10 @@ export default async function InvoiceDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string; perror?: string; sent?: string; serror?: string }>;
+  searchParams: Promise<{ error?: string; perror?: string; sent?: string; serror?: string; receipt?: string }>;
 }) {
   const { id } = await params;
-  const { error, perror, sent, serror } = await searchParams;
+  const { error, perror, sent, serror, receipt } = await searchParams;
 
   const loaded = await loadInvoiceView(id);
   if (!loaded) notFound();
@@ -91,6 +91,25 @@ export default async function InvoiceDetailPage({
           </div>
         ) : null}
 
+        {receipt === "sent" ? (
+          <div className="mb-5 flex items-start gap-3 rounded-lg bg-[#e7f4ef] px-4 py-3 text-sm text-[var(--color-teal)]">
+            <CheckCircle2 size={18} className="mt-0.5 shrink-0" />
+            <span>Receipt emailed to {invoice.clientName}.</span>
+          </div>
+        ) : null}
+        {receipt && receipt !== "sent" ? (
+          <div className="mb-5 flex items-start gap-3 rounded-lg bg-[#fdf3e7] px-4 py-3 text-sm text-[var(--color-amber)]">
+            <AlertTriangle size={18} className="mt-0.5 shrink-0" />
+            <span>
+              {receipt === "no-email"
+                ? "This client has no email address on file, so no receipt was sent."
+                : receipt === "config"
+                ? "Email isn't set up (RESEND_API_KEY). The payment was recorded; configure Resend to send receipts."
+                : "The payment was recorded, but the receipt email couldn't be sent. Try the receipt button again."}
+            </span>
+          </div>
+        ) : null}
+
         {error === "has-payments" ? (
           <div className="mb-5 flex items-start gap-3 rounded-lg bg-[#fdf3e7] px-4 py-3 text-sm text-[var(--color-amber)]">
             <AlertTriangle size={18} className="mt-0.5 shrink-0" />
@@ -154,6 +173,9 @@ export default async function InvoiceDetailPage({
               currency={view.currency}
               balanceDue={view.balanceDue}
               payments={payments}
+              clientEmail={invoice.clientEmail}
+              invoiceTotal={view.totals.total}
+              amountPaid={view.amountPaid}
             />
           </Card>
 

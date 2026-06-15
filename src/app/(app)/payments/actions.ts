@@ -4,6 +4,41 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { recomputeInvoicePayment } from "@/lib/payments";
+import { buildReceiptView } from "@/lib/receipts";
+import { renderReceiptPdf } from "@/lib/pdf/receipt-pdf";
+import { sendPaymentReceiptEmail } from "@/lib/email";
+import { formatMoney } from "@/lib/money";
+
+/**
+ * Render + email a receipt for one payment, then stamp receiptSentAt.
+ * Returns a short outcome code; never throws (callers decide how to surface it).
+ */
+async function deliverReceipt(paymentId: string): Promise<"sent" | "no-email" | "config" | "failed"> {
+  const built = await buildReceiptView(paymentId);
+  if (!built) return "failed";
+  if (!built.clientEmail) return "no-email";
+  try {
+    const pdf = await renderReceiptPdf(built.view);
+    const v = built.view;
+    const result = await sendPaymentReceiptEmail({
+      to: built.clientEmail,
+      invoiceNumber: v.invoiceNumber,
+      businessName: v.businessName,
+      clientName: v.clientName,
+      amountText: formatMoney(v.paymentAmount, v.currency),
+      paidInFull: v.paidInFull,
+      balanceText: v.paidInFull ? null : formatMoney(v.balanceRemaining, v.currency),
+      pdf,
+    });
+    if (!result.ok) {
+      return (result.error || "").toLowerCase().includes("configured") ? "config" : "failed";
+    }
+    await prisma.payment.update({ where: { id: paymentId }, data: { receiptSentAt: new Date() } });
+    return "sent";
+  } catch {
+    return "failed";
+  }
+}
 
 const METHODS = ["ETRANSFER", "BANK_TRANSFER", "CASH"];
 
@@ -48,11 +83,27 @@ export async function recordPayment(formData: FormData): Promise<void> {
   if (!inv) redirect("/invoices");
   if (inv!.status === "DRAFT") redirect(`/invoices/${invoiceId}?perror=draft`);
 
-  await prisma.payment.create({ data: { invoiceId, amount, method: method as never, reference, date } });
+  const created = await prisma.payment.create({ data: { invoiceId, amount, method: method as never, reference, date } });
   await recomputeInvoicePayment(invoiceId);
 
+  let receiptParam = "";
+  if (s(formData.get("sendReceipt")) === "on") {
+    const outcome = await deliverReceipt(created.id);
+    receiptParam = `?receipt=${outcome}`;
+  }
+
   revalidateFor(invoiceId);
-  redirect(`/invoices/${invoiceId}`);
+  redirect(`/invoices/${invoiceId}${receiptParam}`);
+}
+
+export async function sendPaymentReceipt(formData: FormData): Promise<void> {
+  const paymentId = s(formData.get("paymentId"));
+  if (!paymentId) return;
+  const p = await prisma.payment.findUnique({ where: { id: paymentId }, select: { invoiceId: true } });
+  if (!p) redirect("/invoices");
+  const outcome = await deliverReceipt(paymentId);
+  revalidateFor(p!.invoiceId);
+  redirect(`/invoices/${p!.invoiceId}?receipt=${outcome}`);
 }
 
 export async function updatePayment(formData: FormData): Promise<void> {

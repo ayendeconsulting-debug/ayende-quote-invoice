@@ -82,7 +82,7 @@ export async function loadInvoiceView(
   const [inv, profile] = await Promise.all([
     prisma.invoice.findUnique({
       where: { id },
-      include: { ...invoiceInclude, payments: { orderBy: { date: "desc" }, select: { id: true, date: true, amount: true, method: true, reference: true } } },
+      include: { ...invoiceInclude, payments: { orderBy: { date: "desc" }, select: { id: true, date: true, amount: true, method: true, reference: true, receiptSentAt: true } } },
     }),
     getBusinessProfile(),
   ]);
@@ -148,6 +148,10 @@ export async function loadInvoiceView(
     amount: Number(p.amount),
     method: p.method,
     reference: p.reference,
+    receiptSent: Boolean(p.receiptSentAt),
+    receiptSentPretty: p.receiptSentAt
+      ? new Date(p.receiptSentAt).toLocaleDateString("en-CA", { month: "short", day: "numeric" })
+      : null,
   }));
 
   const invoice: InvoiceMeta = {

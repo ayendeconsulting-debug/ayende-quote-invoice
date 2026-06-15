@@ -120,3 +120,57 @@ export async function sendInvoiceEmail(params: {
     return { ok: false, error: e instanceof Error ? e.message : "Failed to send email." };
   }
 }
+
+/**
+ * Email a payment receipt to a client with the rendered receipt PDF attached.
+ * Defensive: returns { ok:false, error } instead of throwing when unconfigured.
+ */
+export async function sendPaymentReceiptEmail(params: {
+  to: string;
+  invoiceNumber: string;
+  businessName: string;
+  clientName: string;
+  amountText: string;
+  paidInFull: boolean;
+  balanceText: string | null;
+  pdf: Buffer;
+}): Promise<SendResult> {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) {
+    return { ok: false, error: "Email isn't configured yet (RESEND_API_KEY is not set). You can still download the receipt and send it manually." };
+  }
+  if (!params.to) return { ok: false, error: "This client has no email address on file." };
+
+  const from = process.env.INVOICE_FROM_EMAIL || process.env.QUOTE_FROM_EMAIL || INVOICE_FROM;
+  const subject = `Payment receipt — ${params.invoiceNumber} (${params.businessName})`;
+  const statusLine = params.paidInFull
+    ? `<p style="color:#0f6e56;margin:0 0 16px;"><strong>Paid in full.</strong> Thank you!</p>`
+    : `<p style="color:#6b7280;margin:0 0 16px;">Balance remaining: <strong>${escapeHtml(params.balanceText ?? "")}</strong></p>`;
+
+  const html = `
+  <div style="font-family:Arial,Helvetica,sans-serif;color:#0d1b2a;max-width:560px;margin:0 auto;">
+    <h2 style="color:#0d1b2a;margin:0 0 4px;">${escapeHtml(params.businessName)}</h2>
+    <p style="color:#6b7280;margin:0 0 12px;">Payment receipt for ${escapeHtml(params.invoiceNumber)}</p>
+    <p>Hi ${escapeHtml(params.clientName)},</p>
+    <p>We&rsquo;ve received your payment of <strong>${escapeHtml(params.amountText)}</strong> toward ${escapeHtml(params.invoiceNumber)}.</p>
+    ${statusLine}
+    <p style="color:#6b7280;font-size:13px;margin-top:24px;">A detailed receipt is attached as a PDF.</p>
+    <hr style="border:none;border-top:1px solid #e4e0d8;margin:24px 0;">
+    <p style="color:#7e8c9a;font-size:12px;">${escapeHtml(params.businessName)}</p>
+  </div>`;
+
+  try {
+    const resend = new Resend(key);
+    const { error } = await resend.emails.send({
+      from,
+      to: params.to,
+      subject,
+      html,
+      attachments: [{ filename: `receipt-${params.invoiceNumber}.pdf`, content: params.pdf }],
+    });
+    if (error) return { ok: false, error: error.message || "Resend rejected the request." };
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Failed to send receipt." };
+  }
+}
