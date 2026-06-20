@@ -2,26 +2,29 @@
 
 /* ------------------------------------------------------------------ */
 /*  Ayende Consulting — brand theme                                    */
-/*  Deep navy ink + warm coral accent. Editorial serif display paired  */
-/*  with a clean grotesque body.                                       */
+/*  Warm graphite ink + teal active accents, with coral reserved for   */
+/*  primary actions. Editorial serif display (Fraunces) paired with a  */
+/*  clean grotesque body (Hanken Grotesk).                             */
 /* ------------------------------------------------------------------ */
 
 @theme {
-  --color-ink: #0d1b2a;        /* deep navy — primary surfaces / sidebar */
-  --color-ink-700: #1b2c3f;
-  --color-ink-500: #3a4d61;
-  --color-ink-300: #7e8c9a;
+  --color-ink: #2a2622;        /* warm graphite — primary text + sidebar rail */
+  --color-ink-700: #3d3833;
+  --color-ink-500: #5f574e;
+  --color-ink-300: #948b7f;
 
-  --color-accent: #e07b39;     /* warm coral — primary actions */
+  --color-accent: #e07b39;     /* warm coral — primary actions / buttons */
   --color-accent-600: #c4641f;
   --color-accent-100: #faece1;
 
-  --color-paper: #f7f5f0;      /* warm off-white page background */
+  --color-paper: #f4f1ea;      /* warm page background */
   --color-surface: #ffffff;
-  --color-line: #e4e0d8;       /* hairline borders */
-  --color-muted: #6b7280;
+  --color-line: #e7e3da;       /* warm hairline borders */
+  --color-muted: #847c70;
 
-  --color-teal: #0f6e56;       /* positive / paid */
+  --color-teal: #0f6e56;       /* positive / paid — text on light */
+  --color-teal-600: #1d9e75;   /* mid teal — active nav + accents */
+  --color-teal-100: #e1f5ee;   /* light teal fill */
   --color-amber: #b45309;      /* pending / overdue accent */
   --color-rose: #b3261e;       /* declined / danger */
 
@@ -46,7 +49,7 @@
     letter-spacing: -0.01em;
   }
   ::selection {
-    background: var(--color-accent-100);
+    background: var(--color-teal-100);
   }
 }
 
