@@ -174,3 +174,66 @@ export async function sendPaymentReceiptEmail(params: {
     return { ok: false, error: e instanceof Error ? e.message : "Failed to send receipt." };
   }
 }
+
+/**
+ * Email a payment reminder to a client, with the invoice PDF attached. Wording
+ * differs for an upcoming due date vs. an overdue balance. Defensive like the
+ * other senders: returns { ok:false, error } instead of throwing when unconfigured.
+ */
+export async function sendInvoiceReminderEmail(params: {
+  to: string;
+  invoiceNumber: string;
+  businessName: string;
+  clientName: string;
+  title?: string | null;
+  kind: "DUE_SOON" | "OVERDUE";
+  dueDate?: string | null;
+  balanceText: string;
+  pdf: Buffer;
+}): Promise<SendResult> {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) {
+    return { ok: false, error: "Email isn't configured yet (RESEND_API_KEY is not set). You can still download the PDF and send it manually." };
+  }
+  if (!params.to) return { ok: false, error: "This client has no email address on file." };
+
+  const from = process.env.INVOICE_FROM_EMAIL || process.env.QUOTE_FROM_EMAIL || INVOICE_FROM;
+  const overdue = params.kind === "OVERDUE";
+  const n = escapeHtml(params.invoiceNumber);
+  const forTitle = params.title ? ` for ${escapeHtml(params.title)}` : "";
+
+  const subject = overdue
+    ? `Overdue: Invoice ${params.invoiceNumber} from ${params.businessName}`
+    : `Reminder: Invoice ${params.invoiceNumber}${params.dueDate ? ` due ${params.dueDate}` : ""}`;
+
+  const lead = overdue
+    ? `Our records show invoice <strong>${n}</strong>${forTitle} is past due${params.dueDate ? ` (it was due ${escapeHtml(params.dueDate)})` : ""}. If your payment is already on its way, please disregard this note — otherwise we'd appreciate settling it at your earliest convenience.`
+    : `This is a friendly reminder that invoice <strong>${n}</strong>${forTitle} is due${params.dueDate ? ` on ${escapeHtml(params.dueDate)}` : " soon"}.`;
+
+  const html = `
+  <div style="font-family:Arial,Helvetica,sans-serif;color:#0d1b2a;max-width:560px;margin:0 auto;">
+    <h2 style="color:#0d1b2a;margin:0 0 4px;">${escapeHtml(params.businessName)}</h2>
+    <p style="color:#6b7280;margin:0 0 16px;">Invoice ${n}</p>
+    <p>Hi ${escapeHtml(params.clientName)},</p>
+    <p>${lead}</p>
+    <p style="margin:16px 0;">Amount due: <strong>${escapeHtml(params.balanceText)}</strong></p>
+    <p style="color:#6b7280;font-size:13px;margin-top:20px;">The invoice and payment details are attached as a PDF.</p>
+    <hr style="border:none;border-top:1px solid #e4e0d8;margin:24px 0;">
+    <p style="color:#7e8c9a;font-size:12px;">${escapeHtml(params.businessName)}</p>
+  </div>`;
+
+  try {
+    const resend = new Resend(key);
+    const { error } = await resend.emails.send({
+      from,
+      to: params.to,
+      subject,
+      html,
+      attachments: [{ filename: `${params.invoiceNumber}.pdf`, content: params.pdf }],
+    });
+    if (error) return { ok: false, error: error.message || "Resend rejected the request." };
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Failed to send reminder." };
+  }
+}

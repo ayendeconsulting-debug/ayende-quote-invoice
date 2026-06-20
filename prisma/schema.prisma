@@ -183,6 +183,8 @@ model Invoice {
   taxAmount      Decimal           @default(0) @db.Decimal(12, 2)
   total          Decimal           @default(0) @db.Decimal(12, 2)
   amountPaid     Decimal           @default(0) @db.Decimal(12, 2)
+  lastReminderAt DateTime?
+  reminderCount  Int               @default(0)
   lineItems      InvoiceLineItem[]
   payments       Payment[]
   createdAt      DateTime          @default(now())

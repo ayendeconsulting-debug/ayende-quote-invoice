@@ -5,6 +5,7 @@ import {
   ReceiptText,
   Wallet,
   Repeat,
+  BellRing,
   BarChart3,
   Settings,
   type LucideIcon,
@@ -23,6 +24,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Invoices", href: "/invoices", icon: ReceiptText },
   { label: "Recurring", href: "/recurring", icon: Repeat },
   { label: "Payments", href: "/payments", icon: Wallet },
+  { label: "Reminders", href: "/reminders", icon: BellRing },
   { label: "Reports", href: "/reports", icon: BarChart3 },
   { label: "Settings", href: "/settings", icon: Settings },
 ];

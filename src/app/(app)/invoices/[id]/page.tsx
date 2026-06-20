@@ -4,9 +4,10 @@ import { Topbar } from "@/components/topbar";
 import { Card } from "@/components/ui/primitives";
 import { Input, Textarea } from "@/components/ui/form";
 import { InvoicePreview } from "@/components/invoice-preview";
-import { ArrowLeft, Send, Undo2, AlertTriangle, Download, FileText, Save, Wallet, Mail, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Send, Undo2, AlertTriangle, Download, FileText, Save, Wallet, Mail, CheckCircle2, BellRing } from "lucide-react";
 import { loadInvoiceView } from "../data";
 import { setInvoiceStatus, updateInvoiceMeta, sendInvoiceToClient } from "../actions";
+import { sendReminder } from "../../reminders/actions";
 import { DeleteInvoiceButton } from "../delete-invoice-button";
 import { PaymentsPanel } from "../payments-panel";
 
@@ -20,10 +21,10 @@ export default async function InvoiceDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string; perror?: string; sent?: string; serror?: string; receipt?: string }>;
+  searchParams: Promise<{ error?: string; perror?: string; sent?: string; serror?: string; receipt?: string; rem?: string }>;
 }) {
   const { id } = await params;
-  const { error, perror, sent, serror, receipt } = await searchParams;
+  const { error, perror, sent, serror, receipt, rem } = await searchParams;
 
   const loaded = await loadInvoiceView(id);
   if (!loaded) notFound();
@@ -49,6 +50,14 @@ export default async function InvoiceDetailPage({
                 <Mail size={16} /> Send to client
               </span>
             )}
+            {invoice.clientEmail &&
+            (invoice.status === "SENT" || invoice.status === "OVERDUE" || invoice.status === "PARTIALLY_PAID") ? (
+              <form action={sendReminder}>
+                <input type="hidden" name="id" value={invoice.id} />
+                <input type="hidden" name="from" value={`/invoices/${invoice.id}`} />
+                <button type="submit" className={btn}><BellRing size={16} /> Send reminder</button>
+              </form>
+            ) : null}
             {invoice.status === "DRAFT" ? (
               <form action={setInvoiceStatus}>
                 <input type="hidden" name="id" value={invoice.id} />
@@ -110,6 +119,27 @@ export default async function InvoiceDetailPage({
           </div>
         ) : null}
 
+        {rem === "sent" ? (
+          <div className="mb-5 flex items-start gap-3 rounded-lg bg-[#e7f4ef] px-4 py-3 text-sm text-[var(--color-teal)]">
+            <CheckCircle2 size={18} className="mt-0.5 shrink-0" />
+            <span>Payment reminder emailed to {invoice.clientName}.</span>
+          </div>
+        ) : null}
+        {rem && rem !== "sent" ? (
+          <div className="mb-5 flex items-start gap-3 rounded-lg bg-[#fdf3e7] px-4 py-3 text-sm text-[var(--color-amber)]">
+            <AlertTriangle size={18} className="mt-0.5 shrink-0" />
+            <span>
+              {rem === "no-email"
+                ? "This client has no email address on file. Add one on the client record, then send."
+                : rem === "config"
+                ? "Email isn't set up (RESEND_API_KEY). Configure Resend to send reminders."
+                : rem === "ineligible"
+                ? "This invoice is no longer due for a reminder (it may have been paid)."
+                : "Couldn't send the reminder. Try again, or send the invoice manually."}
+            </span>
+          </div>
+        ) : null}
+
         {error === "has-payments" ? (
           <div className="mb-5 flex items-start gap-3 rounded-lg bg-[#fdf3e7] px-4 py-3 text-sm text-[var(--color-amber)]">
             <AlertTriangle size={18} className="mt-0.5 shrink-0" />
@@ -129,6 +159,13 @@ export default async function InvoiceDetailPage({
         ) : null}
 
         <div className="mx-auto max-w-3xl space-y-6">
+          {invoice.reminderCount > 0 ? (
+            <div className="flex items-center gap-2 text-sm text-[var(--color-muted)]">
+              <BellRing size={15} className="text-[var(--color-accent-600)]" />
+              Reminded {invoice.reminderCount}×{invoice.lastReminderPretty ? ` · last ${invoice.lastReminderPretty}` : ""}
+            </div>
+          ) : null}
+
           {invoice.sourceQuoteId ? (
             <div className="flex items-center gap-2 text-sm text-[var(--color-muted)]">
               <FileText size={15} className="text-[var(--color-accent-600)]" />

@@ -73,6 +73,8 @@ export interface InvoiceMeta {
   hasPayments: boolean;
   dueDateInput: string; // yyyy-mm-dd or ""
   notes: string;
+  reminderCount: number;
+  lastReminderPretty: string | null;
 }
 
 export async function loadInvoiceView(
@@ -165,6 +167,10 @@ export async function loadInvoiceView(
     hasPayments: inv.payments.length > 0,
     dueDateInput: inv.dueDate ? inv.dueDate.toISOString().slice(0, 10) : "",
     notes: inv.notes ?? "",
+    reminderCount: inv.reminderCount,
+    lastReminderPretty: inv.lastReminderAt
+      ? new Date(inv.lastReminderAt).toLocaleDateString("en-CA", { month: "short", day: "numeric" })
+      : null,
   };
 
   return { view, invoice, payments };
