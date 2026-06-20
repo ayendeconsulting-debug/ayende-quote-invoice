@@ -42,7 +42,7 @@ export function Shell({ email, children }: { email: string; children: React.Reac
           <Menu size={22} />
         </button>
         <Link href="/dashboard" className="font-display text-base tracking-tight">
-          Ayende <span className="text-[var(--color-accent)]">Consulting</span>
+          Ayende <span className="text-[var(--color-accent)]">Books</span>
         </Link>
       </header>
 

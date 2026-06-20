@@ -13,7 +13,7 @@ export default function LoginPage() {
       {/* Brand panel */}
       <div className="hidden flex-col justify-between bg-[var(--color-ink)] p-12 text-white md:flex">
         <div className="font-display text-xl tracking-tight">
-          Ayende <span className="text-[var(--color-accent)]">Consulting</span>
+          Ayende <span className="text-[var(--color-accent)]">Books</span>
         </div>
         <div>
           <h1 className="font-display text-4xl leading-tight text-white">

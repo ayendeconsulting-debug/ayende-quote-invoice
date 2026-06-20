@@ -13,9 +13,9 @@ export function NavList({ email, onNavigate }: { email: string; onNavigate?: () 
     <div className="flex h-full flex-col">
       <div className="px-6 py-6">
         <Link href="/dashboard" onClick={onNavigate} className="font-display text-lg tracking-tight">
-          Ayende <span className="text-[var(--color-accent)]">Consulting</span>
+          Ayende <span className="text-[var(--color-accent)]">Books</span>
         </Link>
-        <p className="mt-0.5 text-xs text-[var(--color-ink-300)]">Quotes &amp; Invoices</p>
+        <p className="mt-0.5 text-xs text-[var(--color-ink-300)]">Bookkeeping &amp; billing</p>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 pb-4">
