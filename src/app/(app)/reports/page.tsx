@@ -22,11 +22,12 @@ import { Download, FileSpreadsheet } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-function MoneyByCurrency({ map, muted = false }: { map: ByCurrency; muted?: boolean }) {
+function MoneyByCurrency({ map, muted = false, positive = false }: { map: ByCurrency; muted?: boolean; positive?: boolean }) {
   const present = nonZeroCurrencies(map);
   const list = present.length ? present : (["CAD"] as Currency[]);
+  const color = positive ? "var(--color-teal)" : muted ? "var(--color-ink-500)" : "var(--color-ink)";
   return (
-    <div className={muted ? "text-[var(--color-ink-500)]" : "text-[var(--color-ink)]"}>
+    <div style={{ color }}>
       {list.map((c: Currency) => (
         <div key={c} className="font-display text-xl tabular-nums">
           {formatMoney(map[c], c)}
@@ -96,7 +97,7 @@ export default async function ReportsPage({
 
   return (
     <>
-      <Topbar title="Reports" subtitle="Receivables, revenue, and acceptance rates." />
+      <Topbar title="Reports" breadcrumb="Insights / Reports" subtitle="Receivables, revenue, and acceptance rates." />
       <div className="space-y-6 p-4 sm:p-6 lg:p-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Suspense>
@@ -139,7 +140,7 @@ export default async function ReportsPage({
         <Card>
           <SectionHeader title="Paid in period">
             <div className="flex items-center gap-3">
-              <div className="text-right"><MoneyByCurrency map={paid.totalsByCurrency} muted /></div>
+              <div className="text-right"><MoneyByCurrency map={paid.totalsByCurrency} positive /></div>
               <ExportButtons report="paid" qs={qs} />
             </div>
           </SectionHeader>

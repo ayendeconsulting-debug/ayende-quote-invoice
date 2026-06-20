@@ -17,13 +17,14 @@ import { ArrowUpRight, Clock, FileText, ReceiptText, Wallet } from "lucide-react
 
 export const dynamic = "force-dynamic";
 
-function MoneyLines({ map }: { map: ByCurrency }) {
+function MoneyLines({ map, tone = "ink" }: { map: ByCurrency; tone?: "ink" | "positive" }) {
   const present = nonZeroCurrencies(map);
   const list = present.length ? present : (["CAD"] as Currency[]);
+  const color = tone === "positive" ? "var(--color-teal)" : "var(--color-ink)";
   return (
     <>
       {list.map((c: Currency) => (
-        <p key={c} className="font-display text-2xl tabular-nums text-[var(--color-ink)]">
+        <p key={c} className="font-display text-2xl tabular-nums" style={{ color }}>
           {formatMoney(map[c], c)}
         </p>
       ))}
@@ -71,7 +72,7 @@ export default async function DashboardPage() {
           </Card>
           <Card className="p-5">
             <p className="text-sm text-[var(--color-muted)]">Paid this month</p>
-            <div className="mt-2"><MoneyLines map={paid.totalsByCurrency} /></div>
+            <div className="mt-2"><MoneyLines map={paid.totalsByCurrency} tone="positive" /></div>
             <p className="mt-1 text-xs text-[var(--color-ink-300)]">Cleared payments</p>
           </Card>
           <Card className="p-5">

@@ -39,11 +39,11 @@ export function NavList({ email, onNavigate }: { email: string; onNavigate?: () 
                     className={clsx(
                       "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition",
                       active
-                        ? "bg-[var(--color-teal-600)]/20 font-medium text-[#5dcaa5]"
+                        ? "bg-[var(--color-accent)]/20 font-medium text-[var(--color-accent)]"
                         : "text-[var(--color-ink-300)] hover:bg-white/5 hover:text-white"
                     )}
                   >
-                    <Icon size={18} className={active ? "text-[#5dcaa5]" : ""} />
+                    <Icon size={18} className={active ? "text-[var(--color-accent)]" : ""} />
                     {item.label}
                   </Link>
                 );
