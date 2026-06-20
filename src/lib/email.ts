@@ -10,6 +10,15 @@ export interface SendResult {
 const DEFAULT_FROM = "Ayende Consulting Inc. <quotes@ayendecx.com>";
 
 /**
+ * Where client replies should land. The `from` addresses are on the no-reply
+ * sending subdomain (mail.ayendecx.com), so without this replies bounce. Defaults
+ * to the monitored admin inbox; override with REPLY_TO_EMAIL if it ever moves.
+ */
+function replyToAddress(): string {
+  return process.env.REPLY_TO_EMAIL || "admin@ayendecx.com";
+}
+
+/**
  * Send a quote share link to a client. Defensive: if RESEND_API_KEY is unset
  * (e.g. before the user has wired Resend), this returns { ok:false, error }
  * instead of throwing, so the app keeps working and the UI can fall back to a
@@ -51,7 +60,7 @@ export async function sendQuoteShareEmail(params: {
 
   try {
     const resend = new Resend(key);
-    const { error } = await resend.emails.send({ from, to: params.to, subject, html });
+    const { error } = await resend.emails.send({ from, replyTo: replyToAddress(), to: params.to, subject, html });
     if (error) return { ok: false, error: error.message || "Resend rejected the request." };
     return { ok: true };
   } catch (e) {
@@ -109,6 +118,7 @@ export async function sendInvoiceEmail(params: {
     const resend = new Resend(key);
     const { error } = await resend.emails.send({
       from,
+      replyTo: replyToAddress(),
       to: params.to,
       subject,
       html,
@@ -163,6 +173,7 @@ export async function sendPaymentReceiptEmail(params: {
     const resend = new Resend(key);
     const { error } = await resend.emails.send({
       from,
+      replyTo: replyToAddress(),
       to: params.to,
       subject,
       html,
@@ -226,6 +237,7 @@ export async function sendInvoiceReminderEmail(params: {
     const resend = new Resend(key);
     const { error } = await resend.emails.send({
       from,
+      replyTo: replyToAddress(),
       to: params.to,
       subject,
       html,
